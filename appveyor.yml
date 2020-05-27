@@ -6,7 +6,7 @@ nuget:
   disable_publish_on_pr: true 
 install:
 - ps: >-
-    nuget restore
+    nuget restore src/SharpYaml.sln
 
     $env:SHARPYAML_BUILD_NUMBER = ([int]$env:APPVEYOR_BUILD_NUMBER).ToString("000")
    
@@ -21,10 +21,12 @@ install:
       }
     }
 build:
-  project: SharpYaml.sln
+  project: src/SharpYaml.sln
   verbosity: minimal
 before_package:
-- cmd: msbuild /t:pack /p:Configuration=Release SharpYaml/SharpYaml.csproj
+- cmd: msbuild /t:pack /p:Configuration=Release src/SharpYaml/SharpYaml.csproj
 artifacts:
-- path: SharpYaml\Bin\Release\*.nupkg
+- path: src\SharpYaml\Bin\Release\*.nupkg
   name: SharpYaml Nugets
+test_script:
+- cmd: echo Tests Disabled.
