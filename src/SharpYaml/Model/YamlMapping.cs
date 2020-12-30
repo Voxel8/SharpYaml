@@ -160,7 +160,7 @@ namespace SharpYaml.Model {
         }
 
         public IEnumerator<KeyValuePair<YamlElement, YamlElement>> GetEnumerator() {
-            return _contents.GetEnumerator();
+            return _keys.Select(k => new KeyValuePair<YamlElement, YamlElement>(k, _contents[k])).GetEnumerator();
         }
 
         void ICollection<KeyValuePair<YamlElement, YamlElement>>.Add(KeyValuePair<YamlElement, YamlElement> item) {
@@ -177,7 +177,7 @@ namespace SharpYaml.Model {
 
             if (Tracker != null) {
                 for (int i = values.Count - 1; i >= 0; i--)
-                    Tracker.OnMappingRemovePair(this, values[i], i);
+                    Tracker.OnMappingRemovePair(this, values[i], i, null);
             }
         }
 
@@ -208,7 +208,7 @@ namespace SharpYaml.Model {
                 key.Tracker = Tracker;
                 value.Tracker = Tracker;
 
-                Tracker.OnMappingAddPair(this, new KeyValuePair<YamlElement, YamlElement>(key, value), _keys.Count - 1);
+                Tracker.OnMappingAddPair(this, new KeyValuePair<YamlElement, YamlElement>(key, value), _keys.Count - 1, null);
             }
         }
 
@@ -226,7 +226,7 @@ namespace SharpYaml.Model {
                     _keys[i].Tracker = value;
                     val.Tracker = value;
 
-                    Tracker.OnMappingAddPair(this, new KeyValuePair<YamlElement, YamlElement>(_keys[i], val), i);
+                    Tracker.OnMappingAddPair(this, new KeyValuePair<YamlElement, YamlElement>(_keys[i], val), i, null);
                 }
             }
         }
@@ -319,7 +319,7 @@ namespace SharpYaml.Model {
                         key.Tracker = Tracker;
                         value.Tracker = Tracker;
                         Tracker.OnMappingAddPair(this, new KeyValuePair<YamlElement, YamlElement>(key, value),
-                            _keys.Count - 1);
+                            _keys.Count - 1, null);
                     }
                     else {
                         value.Tracker = Tracker;
@@ -373,7 +373,12 @@ namespace SharpYaml.Model {
             if (Tracker != null) {
                 item.Key.Tracker = Tracker;
                 item.Value.Tracker = Tracker;
-                Tracker.OnMappingAddPair(this, item, index);
+
+                IEnumerable<KeyValuePair<YamlElement, YamlElement>> nextChildren = null;
+                if (index < _contents.Count - 1)
+                    nextChildren = this.Skip(index + 1);
+                
+                Tracker.OnMappingAddPair(this, item, index, nextChildren);
             }
         }
 
@@ -388,8 +393,13 @@ namespace SharpYaml.Model {
                 stringKeys.Remove(((YamlValue) key).Value);
             }
 
-            if (Tracker != null)
-                Tracker.OnMappingRemovePair(this, new KeyValuePair<YamlElement, YamlElement>(key, value), index);
+            if (Tracker != null) {
+                IEnumerable<KeyValuePair<YamlElement, YamlElement>> nextChildren = null;
+                if (index < _contents.Count)
+                    nextChildren = this.Skip(index);
+
+                Tracker.OnMappingRemovePair(this, new KeyValuePair<YamlElement, YamlElement>(key, value), index, nextChildren);
+            }
         }
 
         public KeyValuePair<YamlElement, YamlElement> this[int index] {

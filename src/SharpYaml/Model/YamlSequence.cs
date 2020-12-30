@@ -153,7 +153,7 @@ namespace SharpYaml.Model
 
             if (Tracker != null) {
                 item.Tracker = Tracker;
-                Tracker.OnSequenceAddElement(this, item, _contents.Count - 1);
+                Tracker.OnSequenceAddElement(this, item, _contents.Count - 1, null);
             }
         }
 
@@ -168,7 +168,7 @@ namespace SharpYaml.Model
                 for (var index = 0; index < _contents.Count; index++) {
                     var item = _contents[index];
                     item.Tracker = value;
-                    Tracker.OnSequenceAddElement(this, item, index);
+                    Tracker.OnSequenceAddElement(this, item, index, null);
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace SharpYaml.Model
 
             if (Tracker != null) {
                 for (int i = copy.Count - 1; i >= 0; i--)
-                    Tracker.OnSequenceRemoveElement(this, copy[i], i);
+                    Tracker.OnSequenceRemoveElement(this, copy[i], i, null);
             }
         }
 
@@ -215,7 +215,12 @@ namespace SharpYaml.Model
 
             if (Tracker != null) {
                 item.Tracker = Tracker;
-                Tracker.OnSequenceAddElement(this, item, index);
+
+                IEnumerable<YamlElement> nextChildren = null;
+                if (index < _contents.Count - 1)
+                    nextChildren = _contents.Skip(index + 1);
+                
+                Tracker.OnSequenceAddElement(this, item, index, nextChildren);
             }
         }
 
@@ -224,8 +229,13 @@ namespace SharpYaml.Model
 
             _contents.RemoveAt(index);
 
-            if (Tracker != null)
-                Tracker.OnSequenceRemoveElement(this, oldValue, index);
+            if (Tracker != null) {
+                IEnumerable<YamlElement> nextChildren = null;
+                if (index < _contents.Count)
+                    nextChildren = _contents.Skip(index);
+                
+                Tracker.OnSequenceRemoveElement(this, oldValue, index, nextChildren);
+            }
         }
 
         public YamlElement this[int index] {
